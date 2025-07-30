@@ -47,8 +47,9 @@ class SalaryPredictor:
         else:
             df = pd.read_csv("Salary-Data.csv")
         df = df.dropna()
-        # Convert to INR
-        df['Salary_INR'] = df['Salary'] * _self.usd_to_inr
+        # Convert to INR annual and monthly
+        df['Salary_INR_year'] = df['Salary'] * _self.usd_to_inr
+        df['Salary_INR_month'] = (df['Salary_INR_year'] / 12).round()
         return df
 
     def feature_engineering(self, df):
@@ -63,7 +64,7 @@ class SalaryPredictor:
             'Gender_encoded', 'Education Level_encoded', 'Job Title_encoded'
         ]
         X = df_processed[feature_columns]
-        y = df_processed['Salary_INR']
+        y = df_processed['Salary_INR_month']
         self.feature_names = feature_columns
         return X, y, df_processed
 
@@ -116,10 +117,10 @@ predictor = st.session_state.predictor
 
 st.markdown("""
     <h2 style="color:#003366;font-family:sans-serif;border-bottom:3px solid #0099CA;padding-bottom:.3em;">
-        💰 Employee Salary Predictor
+        💰 Employee Salary Predictor (Monthly INR)
     </h2>
     <span style="color:#555;font-size:1.08em">
-    Predict employee salaries in <b>Indian Rupees (INR)</b> based on Age, Gender, Education Level, Job Title, and Experience using Machine Learning.
+    Predict employee salaries in <b>Indian Rupees (INR) per month</b> based on Age, Gender, Education Level, Job Title, and Experience using Machine Learning.
     </span>
 """, unsafe_allow_html=True)
 st.divider()
@@ -129,58 +130,58 @@ tabs = st.tabs(["🏠 Home", "📈 Data Analysis", "🔮 Salary Prediction", "�
 with tabs[0]:
     st.write("""
     ### 🌟 Welcome!
-    This app uses a **Random Forest** machine learning model to help HR, candidates, and managers estimate fair salaries.
+    This app uses a **Random Forest** machine learning model to help HR, candidates, and managers estimate fair monthly salaries.
 
     **How to use:**
     1. [Optional] Upload your own CSV dataset, else the default dataset will be used.
     2. Explore analyses and reports under 'Data Analysis.'
-    3. Use 'Salary Prediction' for custom estimate.
+    3. Use 'Salary Prediction' for custom per-month estimate.
     4. View 'Model Performance' for error metrics and diagnostics.
     """)
-    st.info("The web app will use **Salary-Data.csv** in the app folder if you don't upload your own data. All results shown in INR ₹.", icon="ℹ️")
+    st.info("The web app uses **Salary-Data.csv** in the app folder if you don't upload your own data. All results shown in INR ₹ per month.", icon="ℹ️")
     uploaded_file = st.file_uploader("Upload Salary Data (CSV)", type=["csv"], key='uploader')
     st.session_state.df = predictor.load_and_preprocess_data(uploaded_file)
 
 with tabs[1]:
-    st.header("📈 Data Analysis")
+    st.header("📈 Data Analysis (Monthly Salary)")
     df = st.session_state.df
-    st.subheader("Dataset Preview")
-    st.dataframe(df.head(20), use_container_width=True, hide_index=True)
+    st.subheader("Dataset Preview – First 20 Employees")
+    st.dataframe(df[['Age', 'Gender', 'Years of Experience', 'Education Level', 'Job Title', 'Salary_INR_month']].head(20), use_container_width=True, hide_index=True)
     st.markdown("###### Dataset info:")
     st.write(f"**Rows:** {df.shape[0]} &nbsp; **Columns:** {df.shape[1]}")
     st.divider()
 
-    st.subheader("Salary Distribution (INR)")
-    fig1 = px.histogram(df, x='Salary_INR', nbins=30, title='Salary (INR)')
+    st.subheader("Salary Distribution (INR per month)")
+    fig1 = px.histogram(df, x='Salary_INR_month', nbins=30, title='Monthly Salary (INR)')
     st.plotly_chart(fig1, use_container_width=True)
 
     col1, col2 = st.columns(2)
     with col1:
-        st.subheader("Average Salary by Education Level")
-        edu_salary = df.groupby('Education Level')['Salary_INR'].mean().reset_index()
-        fig2 = px.bar(edu_salary, x='Education Level', y='Salary_INR',
-                      color='Education Level', title="Salary vs Education Level", text_auto='.2s')
+        st.subheader("Average Monthly Salary by Education Level")
+        edu_salary = df.groupby('Education Level')['Salary_INR_month'].mean().reset_index()
+        fig2 = px.bar(edu_salary, x='Education Level', y='Salary_INR_month',
+                      color='Education Level', title="Monthly Salary by Education", text_auto='.2s')
         st.plotly_chart(fig2, use_container_width=True)
     with col2:
-        st.subheader("Average Salary by Gender")
-        gender_salary = df.groupby('Gender')['Salary_INR'].mean().reset_index()
-        fig3 = px.bar(gender_salary, x='Gender', y='Salary_INR',
-                      color='Gender', title="Salary vs Gender", text_auto='.2s')
+        st.subheader("Average Monthly Salary by Gender")
+        gender_salary = df.groupby('Gender')['Salary_INR_month'].mean().reset_index()
+        fig3 = px.bar(gender_salary, x='Gender', y='Salary_INR_month',
+                      color='Gender', title="Monthly Salary by Gender", text_auto='.2s')
         st.plotly_chart(fig3, use_container_width=True)
 
     st.divider()
     col3, col4 = st.columns(2)
     with col3:
-        st.subheader("Age vs Salary Scatter")
-        st.plotly_chart(px.scatter(df, x='Age', y='Salary_INR',
-                                   color='Gender', symbol='Education Level', title="Age vs Salary"), use_container_width=True)
+        st.subheader("Age vs Monthly Salary")
+        st.plotly_chart(px.scatter(df, x='Age', y='Salary_INR_month',
+                                   color='Gender', symbol='Education Level', title="Age vs Monthly Salary"), use_container_width=True)
     with col4:
-        st.subheader("Experience vs Salary Scatter")
-        st.plotly_chart(px.scatter(df, x='Years of Experience', y='Salary_INR',
-                                   color='Education Level', symbol='Gender', title="Experience vs Salary"), use_container_width=True)
+        st.subheader("Experience vs Monthly Salary")
+        st.plotly_chart(px.scatter(df, x='Years of Experience', y='Salary_INR_month',
+                                   color='Education Level', symbol='Gender', title="Experience vs Monthly Salary"), use_container_width=True)
 
 with tabs[2]:
-    st.header("🔮 Salary Prediction")
+    st.header("🔮 Salary Prediction (Monthly)")
     with st.form(key="predict_form", clear_on_submit=False):
         cols = st.columns(2)
         age = cols[0].number_input("Age", min_value=18, max_value=65, value=28, step=1)
@@ -188,19 +189,19 @@ with tabs[2]:
         gender = cols[0].selectbox("Gender", sorted(df['Gender'].unique()))
         education = cols[1].selectbox("Education Level", sorted(df['Education Level'].unique()))
         job_title = st.selectbox("Job Title", sorted(df['Job Title'].unique()))
-        submit = st.form_submit_button("Predict Salary 💸")
+        submit = st.form_submit_button("Predict Monthly Salary 💸")
 
     X, y, _ = predictor.feature_engineering(df)
     predictor.train_model(X, y)
 
     if submit:
-        pred_inr = predictor.predict_salary(age, gender, education, job_title, experience)
-        if pred_inr:
-            st.success(f"**Estimated Salary: ₹ {pred_inr:,.0f} INR**", icon="💸")
-            st.caption("Prediction uses a Random Forest, which offers more robust accuracy on real-world salary data.")
+        pred_inr_month = predictor.predict_salary(age, gender, education, job_title, experience)
+        if pred_inr_month:
+            st.success(f"**Estimated Monthly Salary: ₹ {pred_inr_month:,.0f} INR**", icon="💸")
+            st.caption("Prediction is based on current monthly income patterns in your dataset (Random Forest model).")
 
 with tabs[3]:
-    st.header("📋 Model Performance Metrics")
+    st.header("📋 Model Performance Metrics (Monthly)")
     X, y, _ = predictor.feature_engineering(df)
     X_train, X_test, y_train, y_test, y_train_pred, y_test_pred, metrics = predictor.train_model(X, y)
 
@@ -213,21 +214,21 @@ with tabs[3]:
     </ul>
     <h4 style="color:#195b89;">Root Mean Squared Error (RMSE)</h4>
     <ul>
-      <li><b>Training:</b> ₹{metrics['train_rmse']:,.0f}</li>
-      <li><b>Testing:</b> ₹{metrics['test_rmse']:,.0f}</li>
+      <li><b>Training:</b> ₹{metrics['train_rmse']:,.0f} / month</li>
+      <li><b>Testing:</b> ₹{metrics['test_rmse']:,.0f} / month</li>
     </ul>
     <h4 style="color:#195b89;">Mean Absolute Error (MAE)</h4>
     <ul>
-      <li><b>Training:</b> ₹{metrics['train_mae']:,.0f}</li>
-      <li><b>Testing:</b> ₹{metrics['test_mae']:,.0f}</li>
+      <li><b>Training:</b> ₹{metrics['train_mae']:,.0f} / month</li>
+      <li><b>Testing:</b> ₹{metrics['test_mae']:,.0f} / month</li>
     </ul>
     </div>
     """, unsafe_allow_html=True)
     st.divider()
-    st.subheader("Prediction vs. Actual (Test Data)")
+    st.subheader("Prediction vs. Actual (Test Data, Monthly)")
     perf_df = pd.DataFrame({"Actual": y_test, "Predicted": y_test_pred})
     fig = px.scatter(perf_df, x="Actual", y="Predicted",
-                     trendline="ols", title="Actual vs Predicted Salary (Test Set)",
-                     labels={'Actual': "Actual Salary (INR)", 'Predicted': "Predicted Salary (INR)"})
+                     trendline="ols", title="Actual vs Predicted Monthly Salary (Test Set)",
+                     labels={'Actual': "Actual (₹/month)", 'Predicted': "Predicted (₹/month)"})
     fig.update_layout(height=420)
     st.plotly_chart(fig, use_container_width=True)
