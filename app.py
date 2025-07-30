@@ -177,7 +177,13 @@ with tabs[2]:
         with st.form(key="predict_form"):
             cols = st.columns(2)
             age = cols[0].number_input("Age", 18, 65, 28)
-            experience = cols[1].number_input("Years of Experience", 0.0, 40.0, 2.0, 0.5)
+            max_exp = max(0, age - 15)  # Assuming people can't start careers before 15yo
+            experience = cols[1].number_input("Years of Experience", min_value=0.0, max_value=float(max_exp), 
+            value=min(2.0, float(max_exp)), 
+            step=0.5, 
+            format="%.1f"
+            )
+
             gender = cols[0].selectbox("Gender", sorted(df['Gender'].unique()))
             education = cols[1].selectbox("Education Level", sorted(df['Education Level'].unique()))
             job_title = st.selectbox("Job Title", sorted(df['Job Title'].unique()))
