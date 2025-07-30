@@ -103,7 +103,7 @@ predictor = st.session_state.predictor
 
 st.markdown("""
 <h2 style="color:#003366;font-family:sans-serif;border-bottom:3px solid #0099CA;padding-bottom:.3em;">
-Employee Salary Predictor (Monthly INR)
+Employee Salary Predictor
 </h2>
 <span style="color:#555;font-size:1.08em">
 Predict employee salaries in <b>Indian Rupees (INR) per month</b> based on Age, Gender, Education Level, Job Title, and Experience using Machine Learning.
@@ -120,7 +120,7 @@ with tabs[0]:
     This app uses a **Random Forest** machine learning model trained on a cleaned built-in dataset to estimate monthly salaries.
     
     **Instructions:**
-    - The dataset is built-in; custom upload is disabled.
+    - Provides comprehensive data visualizations including salary distribution, correlation with age and experience, and group-wise average salaries..
     - Explore data and predictions in the respective tabs.
     """)
     st.info("The app uses the built-in default dataset `Salary-Data.csv`.", icon="ℹ️")
