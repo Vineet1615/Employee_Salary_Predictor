@@ -15,16 +15,6 @@ st.set_page_config(
     layout="wide"
 )
 
-st.markdown(
-    """
-    <style>
-    .main { background-color: #f8f9fa; }
-    div.block-container { padding-top: 1rem; }
-    [data-testid="stHeader"] { visibility: hidden; }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
 
 # ---------------------- Helper Classes & Functions ------------------------
 
