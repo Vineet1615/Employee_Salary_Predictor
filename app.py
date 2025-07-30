@@ -9,7 +9,6 @@ import plotly.express as px
 import warnings
 
 warnings.filterwarnings('ignore')
-
 st.set_page_config(
     page_title="Employee Salary Predictor",
     page_icon="💰",
@@ -23,8 +22,11 @@ st.markdown(
     div.block-container { padding-top: 1rem; }
     [data-testid="stHeader"] { visibility: hidden; }
     </style>
-    """, unsafe_allow_html=True
+    """,
+    unsafe_allow_html=True
 )
+
+# ---------------------- Helper Classes & Functions ------------------------
 
 class SalaryPredictor:
     def __init__(self):
@@ -34,16 +36,18 @@ class SalaryPredictor:
         self.is_trained = False
 
     @st.cache_data
-    def load_and_preprocess_data(_self, uploaded_file):
-        # Load default CSV if none uploaded
-        if uploaded_file is not None:
-            df = pd.read_csv(uploaded_file)
-        else:
-            df = pd.read_csv("Salary-Data.csv")
+    def load_and_preprocess_data(_self):
+        # Always use the default CSV, ignore any uploaded file
+        df = pd.read_csv("Salary-Data.csv")
         df = df.dropna()
 
-        # Since salary is in INR per year already, compute monthly salary
-        df['Salary_INR_month'] = (df['Salary_INR'] / 12).round()
+        # Ensure 'Salary_INR' column exists and convert to numeric
+        if 'Salary_INR' not in df.columns:
+            st.error("Dataset must contain a 'Salary_INR' column with monthly salary in INR.")
+            return None
+
+        df['Salary_INR'] = pd.to_numeric(df['Salary_INR'], errors='coerce')
+        df = df.dropna(subset=['Salary_INR'])
         return df
 
     def feature_engineering(self, df):
@@ -58,7 +62,7 @@ class SalaryPredictor:
             'Gender_encoded', 'Education Level_encoded', 'Job Title_encoded'
         ]
         X = df_processed[self.feature_names]
-        y = df_processed['Salary_INR_month']
+        y = df_processed['Salary_INR']
         return X, y, df_processed
 
     def train_model(self, X, y):
@@ -101,9 +105,10 @@ class SalaryPredictor:
         pred = self.model.predict(X_input)[0]
         return pred
 
+# --------------------------- Page Layout/Interface --------------------------
+
 if 'predictor' not in st.session_state:
     st.session_state.predictor = SalaryPredictor()
-
 predictor = st.session_state.predictor
 
 st.markdown("""
@@ -118,109 +123,118 @@ st.divider()
 
 tabs = st.tabs(["🏠 Home", "📈 Data Analysis", "🔮 Salary Prediction", "📋 Model Performance"])
 
+# HOME TAB
 with tabs[0]:
     st.write("""
     ### 🌟 Welcome!
-    This app uses a **Random Forest** machine learning model trained on a cleaned dataset to estimate monthly salaries.
+    This app uses a **Random Forest** machine learning model trained on a cleaned built-in dataset to estimate monthly salaries.
     
     **Instructions:**
-    - Upload your CSV dataset or use the default.
+    - The dataset is built-in; custom upload is disabled.
     - Explore data and predictions in the respective tabs.
     """)
-    st.info("Using default dataset *Salary-Data.csv* if no upload provided. All values are monthly salaries in INR ₹.", icon="ℹ️")
-    uploaded_file = st.file_uploader("Upload Salary Data (CSV)", type=["csv"], key="uploader")
-    st.session_state.df = predictor.load_and_preprocess_data(uploaded_file)
+    st.info("The app uses the built-in default dataset `Salary-Data.csv`. Custom dataset upload is disabled.", icon="ℹ️")
+    df = predictor.load_and_preprocess_data()
+    st.session_state.df = df
 
+# DATA ANALYSIS TAB
 with tabs[1]:
     st.header("📈 Data Analysis (Monthly Salary)")
-    df = st.session_state.df
-    st.subheader("Data Preview (First 20 rows)")
-    st.dataframe(df[['Age', 'Gender', 'Years of Experience', 'Education Level', 'Job Title', 'Salary_INR_month']].head(20), use_container_width=True)
-    
-    st.markdown(f"**Rows:** {df.shape[0]} | **Columns:** {df.shape[1]}")
-    st.divider()
-    
-    st.subheader("Monthly Salary Distribution")
-    fig_hist = px.histogram(df, x='Salary_INR_month', nbins=30, title='Monthly Salary Distribution (INR)')
-    st.plotly_chart(fig_hist, use_container_width=True)
+    df = st.session_state.get('df', None)
+    if df is None:
+        st.warning("Unable to load default dataset.")
+    else:
+        st.subheader("Data Preview (First 20 rows)")
+        st.dataframe(df[['Age', 'Gender', 'Years of Experience', 'Education Level', 'Job Title', 'Salary_INR']].head(20), use_container_width=True)
+        st.markdown(f"**Rows:** {df.shape[0]} | **Columns:** {df.shape[1]}")
+        st.divider()
+        st.subheader("Monthly Salary Distribution")
+        fig_hist = px.histogram(df, x='Salary_INR', nbins=30, title='Monthly Salary Distribution (INR)')
+        st.plotly_chart(fig_hist, use_container_width=True)
+        col1, col2 = st.columns(2)
+        with col1:
+            st.subheader("Average Monthly Salary by Education Level")
+            edu_salary = df.groupby('Education Level')['Salary_INR'].mean().reset_index()
+            fig_edu = px.bar(edu_salary, x='Education Level', y='Salary_INR', color='Education Level',
+                             title="Monthly Salary by Education Level", text_auto='.2s')
+            st.plotly_chart(fig_edu, use_container_width=True)
+        with col2:
+            st.subheader("Average Monthly Salary by Gender")
+            gender_salary = df.groupby('Gender')['Salary_INR'].mean().reset_index()
+            fig_gender = px.bar(gender_salary, x='Gender', y='Salary_INR', color='Gender',
+                                title="Monthly Salary by Gender", text_auto='.2s')
+            st.plotly_chart(fig_gender, use_container_width=True)
+        st.divider()
+        col3, col4 = st.columns(2)
+        with col3:
+            st.subheader("Age vs Monthly Salary")
+            fig_age = px.scatter(df, x='Age', y='Salary_INR', color='Gender', symbol='Education Level',
+                                 title="Age vs Monthly Salary")
+            st.plotly_chart(fig_age, use_container_width=True)
+        with col4:
+            st.subheader("Experience vs Monthly Salary")
+            fig_exp = px.scatter(df, x='Years of Experience', y='Salary_INR', color='Education Level', symbol='Gender',
+                                 title="Experience vs Monthly Salary")
+            st.plotly_chart(fig_exp, use_container_width=True)
 
-    col1, col2 = st.columns(2)
-    with col1:
-        st.subheader("Average Monthly Salary by Education Level")
-        edu_salary = df.groupby('Education Level')['Salary_INR_month'].mean().reset_index()
-        fig_edu = px.bar(edu_salary, x='Education Level', y='Salary_INR_month', color='Education Level',
-                         title="Monthly Salary by Education Level", text_auto='.2s')
-        st.plotly_chart(fig_edu, use_container_width=True)
-    with col2:
-        st.subheader("Average Monthly Salary by Gender")
-        gender_salary = df.groupby('Gender')['Salary_INR_month'].mean().reset_index()
-        fig_gender = px.bar(gender_salary, x='Gender', y='Salary_INR_month', color='Gender',
-                            title="Monthly Salary by Gender", text_auto='.2s')
-        st.plotly_chart(fig_gender, use_container_width=True)
-
-    st.divider()
-    col3, col4 = st.columns(2)
-    with col3:
-        st.subheader("Age vs Monthly Salary")
-        fig_age = px.scatter(df, x='Age', y='Salary_INR_month', color='Gender', symbol='Education Level',
-                             title="Age vs Monthly Salary")
-        st.plotly_chart(fig_age, use_container_width=True)
-    with col4:
-        st.subheader("Experience vs Monthly Salary")
-        fig_exp = px.scatter(df, x='Years of Experience', y='Salary_INR_month', color='Education Level', symbol='Gender',
-                             title="Experience vs Monthly Salary")
-        st.plotly_chart(fig_exp, use_container_width=True)
-
+# SALARY PREDICTION TAB
 with tabs[2]:
     st.header("🔮 Salary Prediction (Monthly)")
-    with st.form(key="predict_form"):
-        cols = st.columns(2)
-        age = cols[0].number_input("Age", 18, 65, 28)
-        experience = cols[1].number_input("Years of Experience", 0.0, 40.0, 2.0, 0.5)
-        gender = cols[0].selectbox("Gender", sorted(df['Gender'].unique()))
-        education = cols[1].selectbox("Education Level", sorted(df['Education Level'].unique()))
-        job_title = st.selectbox("Job Title", sorted(df['Job Title'].unique()))
-        submit = st.form_submit_button("Predict Monthly Salary 💸")
+    df = st.session_state.get('df', None)
+    if df is None:
+        st.warning("Dataset not loaded. Please check the Home tab.")
+    else:
+        with st.form(key="predict_form"):
+            cols = st.columns(2)
+            age = cols[0].number_input("Age", 18, 65, 28)
+            experience = cols[1].number_input("Years of Experience", 0.0, 40.0, 2.0, 0.5)
+            gender = cols[0].selectbox("Gender", sorted(df['Gender'].unique()))
+            education = cols[1].selectbox("Education Level", sorted(df['Education Level'].unique()))
+            job_title = st.selectbox("Job Title", sorted(df['Job Title'].unique()))
+            submit = st.form_submit_button("Predict Monthly Salary 💸")
 
-    X, y, _ = predictor.feature_engineering(df)
-    predictor.train_model(X, y)
+        if submit:
+            X, y, _ = predictor.feature_engineering(df)
+            predictor.train_model(X, y)
+            pred_monthly = predictor.predict_salary(age, gender, education, job_title, experience)
+            if pred_monthly is not None:
+                st.success(f"**Estimated Monthly Salary: ₹ {pred_monthly:,.0f} INR**", icon="💸")
+                st.caption("Prediction is based on current monthly income patterns in the dataset, using Random Forest regression.")
 
-    if submit:
-        pred_monthly = predictor.predict_salary(age, gender, education, job_title, experience)
-        if pred_monthly:
-            st.success(f"**Estimated Monthly Salary: ₹ {pred_monthly:,.0f} INR**", icon="💸")
-            st.caption("Prediction is based on current monthly income patterns in the dataset, using Random Forest regression.")
-
+# MODEL PERFORMANCE TAB
 with tabs[3]:
     st.header("📋 Model Performance Metrics (Monthly Salary)")
-    X, y, _ = predictor.feature_engineering(df)
-    X_train, X_test, y_train, y_test, y_train_pred, y_test_pred, metrics = predictor.train_model(X, y)
+    df = st.session_state.get('df', None)
+    if df is None:
+        st.warning("Dataset not loaded. Please check the Home tab.")
+    else:
+        X, y, _ = predictor.feature_engineering(df)
+        X_train, X_test, y_train, y_test, y_train_pred, y_test_pred, metrics = predictor.train_model(X, y)
+        st.markdown(f"""
+        <div style="background:#e3f2fd;padding:1em 2em;border-radius:10px;border:1px solid #90caf9;">
+            <h4 style="color:#195b89;">R² Score</h4>
+            <ul>
+                <li><b>Training:</b> {metrics['train_r2']:.3f}</li>
+                <li><b>Testing:</b> {metrics['test_r2']:.3f}</li>
+            </ul>
+            <h4 style="color:#195b89;">Root Mean Squared Error (RMSE)</h4>
+            <ul>
+                <li><b>Training:</b> ₹{metrics['train_rmse']:,.0f} / month</li>
+                <li><b>Testing:</b> ₹{metrics['test_rmse']:,.0f} / month</li>
+            </ul>
+            <h4 style="color:#195b89;">Mean Absolute Error (MAE)</h4>
+            <ul>
+                <li><b>Training:</b> ₹{metrics['train_mae']:,.0f} / month</li>
+                <li><b>Testing:</b> ₹{metrics['test_mae']:,.0f} / month</li>
+            </ul>
+        </div>
+        """, unsafe_allow_html=True)
 
-    st.markdown(f"""
-    <div style="background:#e3f2fd;padding:1em 2em;border-radius:10px;border:1px solid #90caf9;">
-        <h4 style="color:#195b89;">R² Score</h4>
-        <ul>
-            <li><b>Training:</b> {metrics['train_r2']:.3f}</li>
-            <li><b>Testing:</b> {metrics['test_r2']:.3f}</li>
-        </ul>
-        <h4 style="color:#195b89;">Root Mean Squared Error (RMSE)</h4>
-        <ul>
-            <li><b>Training:</b> ₹{metrics['train_rmse']:,.0f} / month</li>
-            <li><b>Testing:</b> ₹{metrics['test_rmse']:,.0f} / month</li>
-        </ul>
-        <h4 style="color:#195b89;">Mean Absolute Error (MAE)</h4>
-        <ul>
-            <li><b>Training:</b> ₹{metrics['train_mae']:,.0f} / month</li>
-            <li><b>Testing:</b> ₹{metrics['test_mae']:,.0f} / month</li>
-        </ul>
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.divider()
-    st.subheader("Prediction vs Actual (Test Data, Monthly)")
-    perf_df = pd.DataFrame({"Actual": y_test, "Predicted": y_test_pred})
-    fig_perf = px.scatter(perf_df, x="Actual", y="Predicted", trendline="ols",
-                          title="Actual vs Predicted Monthly Salary (Test Set)",
-                          labels={'Actual': "Actual (₹/month)", 'Predicted': "Predicted (₹/month)"})
-    fig_perf.update_layout(height=420)
-    st.plotly_chart(fig_perf, use_container_width=True)
+        st.divider()
+        st.subheader("Prediction vs Actual (Test Data, Monthly)")
+        perf_df = pd.DataFrame({"Actual": y_test, "Predicted": y_test_pred})
+        fig_perf = px.scatter(perf_df, x="Actual", y="Predicted", trendline="ols",
+                              title="Actual vs Predicted Monthly Salary (Test Set)",
+                              labels={'Actual': "Actual (₹/month)", 'Predicted': "Predicted (₹/month)"})
+        fig_perf.update_layout(height=420)
+        st.plotly_chart(fig_perf, use_container_width=True)
