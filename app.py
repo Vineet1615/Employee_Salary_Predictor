@@ -17,16 +17,6 @@ st.set_page_config(
 )
 
 # Simplified CSS without hiding Streamlit header
-st.markdown(
-    """
-    <style>
-    .main { background-color: #f8f9fa; }
-    div.block-container { padding-top: 1rem; }
-    /* Removed the header hiding rule to avoid missing texts */
-    </style>
-    """,
-    unsafe_allow_html=True
-)
 
 # Intro Text with Streamlit native functions for reliability
 with st.container():
