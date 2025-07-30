@@ -19,16 +19,7 @@ st.set_page_config(
 # Simplified CSS without hiding Streamlit header
 
 # Intro Text with Streamlit native functions for reliability
-with st.container():
-    st.write("### 🌟 Welcome!")
-    st.write(
-        "This app uses a **Random Forest** machine learning model trained on a cleaned built-in dataset "
-        "to estimate monthly salaries."
-    )
-    st.write("#### Instructions:")
-    st.write("- The dataset is built-in; custom upload is disabled.")
-    st.write("- Explore data and predictions in the respective tabs.")
-    st.info("ℹ️ The app uses the built-in default dataset **Salary-Data.csv**.")
+
 
 # ---------------------- Helper Classes & Functions ------------------------
 
