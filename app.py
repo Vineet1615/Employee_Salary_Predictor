@@ -9,22 +9,36 @@ import plotly.express as px
 import warnings
 
 warnings.filterwarnings('ignore')
+
 st.set_page_config(
     page_title="Employee Salary Predictor",
     page_icon="💰",
     layout="wide"
 )
 
+# Simplified CSS without hiding Streamlit header
 st.markdown(
     """
     <style>
     .main { background-color: #f8f9fa; }
     div.block-container { padding-top: 1rem; }
-    [data-testid="stHeader"] { visibility: hidden; }
+    /* Removed the header hiding rule to avoid missing texts */
     </style>
     """,
     unsafe_allow_html=True
 )
+
+# Intro Text with Streamlit native functions for reliability
+with st.container():
+    st.write("### 🌟 Welcome!")
+    st.write(
+        "This app uses a **Random Forest** machine learning model trained on a cleaned built-in dataset "
+        "to estimate monthly salaries."
+    )
+    st.write("#### Instructions:")
+    st.write("- The dataset is built-in; custom upload is disabled.")
+    st.write("- Explore data and predictions in the respective tabs.")
+    st.info("ℹ️ The app uses the built-in default dataset **Salary-Data.csv**.")
 
 # ---------------------- Helper Classes & Functions ------------------------
 
@@ -37,11 +51,9 @@ class SalaryPredictor:
 
     @st.cache_data
     def load_and_preprocess_data(_self):
-        # Always use the default CSV, ignore any uploaded file
         df = pd.read_csv("Salary-Data.csv")
         df = df.dropna()
 
-        # Ensure 'Salary_INR' column exists and convert to numeric
         if 'Salary_INR' not in df.columns:
             st.error("Dataset must contain a 'Salary_INR' column with monthly salary in INR.")
             return None
@@ -111,33 +123,20 @@ if 'predictor' not in st.session_state:
     st.session_state.predictor = SalaryPredictor()
 predictor = st.session_state.predictor
 
-st.markdown("""
-<h2 style="color:#003366;font-family:sans-serif;border-bottom:3px solid #0099CA;padding-bottom:.3em;">
-Employee Salary Predictor (Monthly INR)
-</h2>
-<span style="color:#555;font-size:1.08em">
-Predict employee salaries in <b>Indian Rupees (INR) per month</b> based on Age, Gender, Education Level, Job Title, and Experience using Machine Learning.
-</span>
-""", unsafe_allow_html=True)
-st.divider()
-
 tabs = st.tabs(["🏠 Home", "📈 Data Analysis", "🔮 Salary Prediction", "📋 Model Performance"])
 
-# HOME TAB
+# Since intro text is outside tabs already, HOME tab can be used for a welcome message or left empty if desired
 with tabs[0]:
-    st.write("""
-    ###  Welcome!
-    This app uses a **Random Forest** machine learning model trained on a cleaned built-in dataset to estimate monthly salaries.
-    
-    **Instructions:**
-    - The dataset is built-in; custom upload is disabled.
-    - Explore data and predictions in the respective tabs.
-    """)
-    st.info("The app uses the built-in default dataset `Salary-Data.csv`.", icon="ℹ️")
+    st.write(
+        """
+        ### 🏠 Home
+        Welcome to the Employee Salary Predictor app.
+        Use the tabs to analyze data, predict salaries, and view model performance.
+        """
+    )
     df = predictor.load_and_preprocess_data()
     st.session_state.df = df
 
-# DATA ANALYSIS TAB
 with tabs[1]:
     st.header("📈 Data Analysis (Monthly Salary)")
     df = st.session_state.get('df', None)
@@ -177,9 +176,8 @@ with tabs[1]:
                                  title="Experience vs Monthly Salary")
             st.plotly_chart(fig_exp, use_container_width=True)
 
-# SALARY PREDICTION TAB
 with tabs[2]:
-    st.header(" Salary Prediction (Monthly)")
+    st.header("🔮 Salary Prediction (Monthly)")
     df = st.session_state.get('df', None)
     if df is None:
         st.warning("Dataset not loaded. Please check the Home tab.")
@@ -201,7 +199,6 @@ with tabs[2]:
                 st.success(f"**Estimated Monthly Salary: ₹ {pred_monthly:,.0f} INR**", icon="💸")
                 st.caption("Prediction is based on current monthly income patterns in the dataset, using Random Forest regression.")
 
-# MODEL PERFORMANCE TAB
 with tabs[3]:
     st.header("📋 Model Performance Metrics (Monthly Salary)")
     df = st.session_state.get('df', None)
