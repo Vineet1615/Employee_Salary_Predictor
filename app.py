@@ -119,9 +119,14 @@ with tabs[0]:
     ###  Welcome!
     This app uses a **Random Forest** machine learning model trained on a cleaned built-in dataset to estimate monthly salaries.
     
-    **Instructions:**
-    - Provides comprehensive data visualizations including salary distribution, correlation with age and experience, and group-wise average salaries..
-    - Explore data and predictions in the respective tabs.
+    **Why Use the Employee Salary Predictor?**
+
+- Save time: Automate salary benchmarking for any candidate profile in seconds.
+- Remove guesswork: Data-driven models capture real industry factors and experience.
+- Visualize insights: Compare compensation by demographics, roles, and qualifications.
+- Empower HR and employees: Promote pay transparency and informed decision-making.
+- Secure, seamless, and fully accessible—no data upload or configuration needed.
+
     """)
     st.info("The app uses the built-in default dataset `Salary-Data.csv`.", icon="ℹ️")
     df = predictor.load_and_preprocess_data()
