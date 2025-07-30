@@ -201,7 +201,7 @@ with tabs[3]:
         X, y, _ = predictor.feature_engineering(df)
         X_train, X_test, y_train, y_test, y_train_pred, y_test_pred, metrics = predictor.train_model(X, y)
         st.markdown(f"""
-        <div style="background:#e3f2fd;padding:1em 2em;border-radius:10px;border:1px solid #90caf9;">
+        <div style="background:#F2F2F2;padding:1em 2em;border-radius:10px;border:1px solid #90caf9;">
             <h4 style="color:#195b89;">R² Score</h4>
             <ul>
                 <li><b>Training:</b> {metrics['train_r2']:.3f}</li>
