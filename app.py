@@ -133,7 +133,7 @@ with tabs[0]:
     - The dataset is built-in; custom upload is disabled.
     - Explore data and predictions in the respective tabs.
     """)
-    st.info("The app uses the built-in default dataset `Salary-Data.csv`. Custom dataset upload is disabled.", icon="ℹ️")
+    st.info("The app uses the built-in default dataset `Salary-Data.csv`.", icon="ℹ️")
     df = predictor.load_and_preprocess_data()
     st.session_state.df = df
 
