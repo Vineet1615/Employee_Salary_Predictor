@@ -1,7 +1,9 @@
 **Employee Salary Predictor**
+
 This project is a Machine Learning application designed to predict employee monthly salaries in Indian Rupees (INR) based on features like age, gender, years of experience, education level, and job title.
 
 **Features**
+
 - Uses a Random Forest Regressor model for accurate salary prediction.
 
 - Processes a clean, realistic dataset of 1000+ employee records with monthly salary data.
@@ -17,9 +19,11 @@ This project is a Machine Learning application designed to predict employee mont
 - No dataset upload needed; app uses a built-in clean dataset by default.
 
 **Access the deployed app at:**
+
 https://employeesalary-predictor.streamlit.app/
 
 **Project Structure**
+
 app.py - Streamlit app code for frontend, data visualization, and user input handling.
 
 salary_predictor.py - Core Machine Learning pipeline with model training and prediction.
