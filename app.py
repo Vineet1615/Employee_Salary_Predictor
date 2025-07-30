@@ -11,7 +11,7 @@ import warnings
 warnings.filterwarnings('ignore')
 st.set_page_config(
     page_title="Employee Salary Predictor",
-    page_icon="💰",
+    page_icon="",
     layout="wide"
 )
 
