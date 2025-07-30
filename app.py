@@ -11,7 +11,7 @@ import warnings
 warnings.filterwarnings('ignore')
 st.set_page_config(
     page_title="Employee Salary Predictor",
-    page_icon="",
+    page_icon="💰",
     layout="wide"
 )
 
@@ -113,7 +113,7 @@ predictor = st.session_state.predictor
 
 st.markdown("""
 <h2 style="color:#003366;font-family:sans-serif;border-bottom:3px solid #0099CA;padding-bottom:.3em;">
-💰 Employee Salary Predictor (Monthly INR)
+Employee Salary Predictor (Monthly INR)
 </h2>
 <span style="color:#555;font-size:1.08em">
 Predict employee salaries in <b>Indian Rupees (INR) per month</b> based on Age, Gender, Education Level, Job Title, and Experience using Machine Learning.
@@ -126,7 +126,7 @@ tabs = st.tabs(["🏠 Home", "📈 Data Analysis", "🔮 Salary Prediction", "�
 # HOME TAB
 with tabs[0]:
     st.write("""
-    ### 🌟 Welcome!
+    ###  Welcome!
     This app uses a **Random Forest** machine learning model trained on a cleaned built-in dataset to estimate monthly salaries.
     
     **Instructions:**
@@ -179,7 +179,7 @@ with tabs[1]:
 
 # SALARY PREDICTION TAB
 with tabs[2]:
-    st.header("🔮 Salary Prediction (Monthly)")
+    st.header(" Salary Prediction (Monthly)")
     df = st.session_state.get('df', None)
     if df is None:
         st.warning("Dataset not loaded. Please check the Home tab.")
